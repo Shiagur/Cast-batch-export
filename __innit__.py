@@ -2,8 +2,8 @@ bl_info = {
     "name" : "Simple Cast Batch Export Script",
     "author" : "Shiagur",
     "description" : "",
-    "blender" : (4, 5, 4),
-    "version" : (1, 0, 0),
+    "blender" : (5, 0, 1),
+    "version" : (1, 1, 0),
     "location" : "View3d > Tools",
     "warning" : "",
     "category" : "Generic"
@@ -55,9 +55,30 @@ class ExportOp (bpy.types.Operator, ExportHelper):
             return {'CANCELLED'}
 
         for exp_action in bpy.data.actions:
-
+            print("\n\n new loop")
+            print(f"action: {exp_action.name}")
             bpy.context.object.animation_data.action = exp_action
-            cast_export=bpy.ops.export_scene.cast(
+            if bpy.app.version >= (4,4,0):
+                print(f"is 4.4.0 or above")
+                if len(bpy.context.active_object.animation_data.action.slots) == 0:
+                    print(f"0 action slots")
+                    continue
+                for slot in bpy.context.active_object.animation_data.action.slots:
+                    print(f"slot: {slot.name_display}")
+                    bpy.context.active_object.animation_data.action_slot = slot
+                    cast_export=bpy.ops.export_scene.cast(
+                        filepath=str(f"{exppath}{exp_action.name}.cast"), 
+                        check_existing=False, 
+                        export_selected=pg.export_selected, 
+                        incl_model=pg.include_models, 
+                        incl_animation=pg.include_animations, 
+                        incl_notetracks=pg.include_notetracks, 
+                        is_looped=pg.looped, 
+                        scale=pg.scale, 
+                        up_axis=pg.up_enum
+                    )
+            else:
+                cast_export=bpy.ops.export_scene.cast(
                 filepath=str(f"{exppath}{exp_action.name}.cast"), 
                 check_existing=False, 
                 export_selected=pg.export_selected, 
